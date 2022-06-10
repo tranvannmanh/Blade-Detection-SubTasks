@@ -33,7 +33,7 @@ class Root(Tk):
 
 
     def fileDialog(self):
-        filename = filedialog.askopenfilename(initialdir = "C:/Users/T R N V A N M A N H/Desktop/Tkinter Tutal", title = "Select A File", filetype = (("all files","*.*"),("jpeg files","*.jpg")) )
+        filename = filedialog.askopenfilename(initialdir = "C:/Users/T R N V A N M A N H/Desktop/BLADE-DETECTION", title = "Select A File", filetype = (("all files","*.*"),("jpeg files","*.jpg")) )
         
         self.label.configure(text = 'Opening:   '+filename)
 
