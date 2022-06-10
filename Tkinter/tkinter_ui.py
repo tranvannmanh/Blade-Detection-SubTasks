@@ -1,6 +1,10 @@
 from tkinter import *
 from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
+import numpy as np
+from scipy import signal
+from skimage.morphology import erosion, dilation
+import scipy.stats as st
 
 class Root(Tk):
     def __init__(self):
@@ -55,6 +59,18 @@ class Root(Tk):
         gray_scale = ttk.Button(tools, text='2Gray', command=lambda : self.image2Gray(image))
         gray_scale.grid(column=0, row=2)
 
+        blured_image = ttk.Button(tools, text='Gauss Blur', command=lambda: self.gaussian_blur(image))
+        blured_image.grid(column=0, row=3)
+
+        edge_detected = ttk.Button(tools, text='Edge Detect', command=lambda: self.sobel_edge_detect(image))
+        edge_detected.grid(column=0, row=4)
+
+        erosion = ttk.Button(tools, text='Erosion', command=lambda: self.eros_img(image))
+        erosion.grid(column=0, row=5)
+
+        dilation = ttk.Button(tools, text='Dilation', command=lambda: self.dilate_img(image))
+        dilation.grid(column=0, row=6)
+
 
     def image2Gray(self, image):
         # Convert image to gray
@@ -95,6 +111,87 @@ class Root(Tk):
         self.imageEditTools(image)
         print('LOG:. zoom_out')
 
+    def gaussian_filter(self, size, nsig=1):
+        x = np.linspace(-nsig, nsig, size+1)
+        ker1d = np.diff(st.norm.cdf(x))
+        ker2d = np.outer(ker1d, ker1d)
+        return ker2d
+
+    def gaussian_blur(self, image, kernel_size=5):
+        blured_img = signal.convolve2d(image, self.gaussian_filter(5))
+
+        img = Image.fromarray(blured_img)
+        img_display = ImageTk.PhotoImage(img)
+        self.display_image.configure(image=img_display)
+        self.display_image.image = img_display
+
+        self.imageEditTools(img)
+        print('LOG:. blured')
+
+    def sobel_edge_detect(self, image):
+        sobel_x = np.array([[1, 0, -1], [2, 0 ,-2], [1, 0, -1]])
+        sobel_y = np.array([[1, 2, 1], [0, 0 ,0], [-1, -2, -1]])
+        image_x = signal.convolve2d(image, sobel_x)
+        # plt.figure(dpi=170)
+        # plt.subplot(1, 3, 1)
+        # plt.imshow(image_x, cmap='gray')
+        image_y = signal.convolve2d(image, sobel_y)
+        # plt.subplot(1, 3, 2)
+        # plt.imshow(image_y, cmap='gray')
+        edge_detected = np.sqrt(np.square(image_x) + np.square(image_y))
+        # plt.subplot(1, 3, 3)
+        # plt.imshow(edge_detected, cmap='gray')
+
+        img = Image.fromarray(edge_detected)
+
+        img_display = ImageTk.PhotoImage(img)
+        self.display_image.configure(image=img_display)
+        self.display_image.image = img_display
+
+        self.imageEditTools(img)
+        print('LOG:. Sobel applied')
+        # return edge_detected
+
+
+    def eros_img(self, image, epoch=1):
+        eros_filter = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
+        # erosed = image
+        # for i in range(epoch):
+        erosed = erosion(image, eros_filter)
+        
+        img = Image.fromarray(erosed)
+        img_display = ImageTk.PhotoImage(img)
+        self.display_image.configure(image=img_display)
+        self.display_image.image=img_display
+
+        self.imageEditTools(img)
+        print('LOG:. Erosion')
+
+
+    def dilate_img(self, image, epoch=1):
+        dilation_filter = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
+        dilated = dilation(image, dilation_filter)
+
+        img = Image.fromarray(dilated)
+        img_display = ImageTk.PhotoImage(img)
+        self.display_image.configure(image=img_display)
+        self.display_image.image=img_display
+
+        self.imageEditTools(img)
+        print('LOG:. Dilation')
+        # if epoch == 0:
+        #     dilated_image = image
+        # else:
+        #     dilated_image = dilation(edge_blade, dilation_filter)
+        #     for i in range(epoch-1):
+        #         dilated_image = dilation(dilated_image, dilation_filter)
+
+        # plt.figure(dpi=150)
+        # plt.subplot(121)
+        # plt.imshow(edge_blade, cmap='gray')
+        # plt.subplot(122)
+        # plt.imshow(dilated_image, cmap='gray')
+        # return dilated_image
 root = Root()
 root.mainloop()
 
