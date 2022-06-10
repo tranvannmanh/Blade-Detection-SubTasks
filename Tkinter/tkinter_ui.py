@@ -131,16 +131,10 @@ class Root(Tk):
     def sobel_edge_detect(self, image):
         sobel_x = np.array([[1, 0, -1], [2, 0 ,-2], [1, 0, -1]])
         sobel_y = np.array([[1, 2, 1], [0, 0 ,0], [-1, -2, -1]])
+
         image_x = signal.convolve2d(image, sobel_x)
-        # plt.figure(dpi=170)
-        # plt.subplot(1, 3, 1)
-        # plt.imshow(image_x, cmap='gray')
         image_y = signal.convolve2d(image, sobel_y)
-        # plt.subplot(1, 3, 2)
-        # plt.imshow(image_y, cmap='gray')
         edge_detected = np.sqrt(np.square(image_x) + np.square(image_y))
-        # plt.subplot(1, 3, 3)
-        # plt.imshow(edge_detected, cmap='gray')
 
         img = Image.fromarray(edge_detected)
 
@@ -148,17 +142,16 @@ class Root(Tk):
         self.display_image.configure(image=img_display)
         self.display_image.image = img_display
 
+        # update image to edit tools
         self.imageEditTools(img)
         print('LOG:. Sobel applied')
-        # return edge_detected
 
 
     def eros_img(self, image, epoch=1):
         eros_filter = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
-        # erosed = image
-        # for i in range(epoch):
         erosed = erosion(image, eros_filter)
         
+        # Numpy array to Image
         img = Image.fromarray(erosed)
         img_display = ImageTk.PhotoImage(img)
         self.display_image.configure(image=img_display)
@@ -170,6 +163,8 @@ class Root(Tk):
 
     def dilate_img(self, image, epoch=1):
         dilation_filter = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
+
+        # apply dilation to image
         dilated = dilation(image, dilation_filter)
 
         img = Image.fromarray(dilated)
@@ -179,19 +174,7 @@ class Root(Tk):
 
         self.imageEditTools(img)
         print('LOG:. Dilation')
-        # if epoch == 0:
-        #     dilated_image = image
-        # else:
-        #     dilated_image = dilation(edge_blade, dilation_filter)
-        #     for i in range(epoch-1):
-        #         dilated_image = dilation(dilated_image, dilation_filter)
-
-        # plt.figure(dpi=150)
-        # plt.subplot(121)
-        # plt.imshow(edge_blade, cmap='gray')
-        # plt.subplot(122)
-        # plt.imshow(dilated_image, cmap='gray')
-        # return dilated_image
+      
 root = Root()
 root.mainloop()
 
