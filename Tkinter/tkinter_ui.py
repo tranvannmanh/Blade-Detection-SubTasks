@@ -179,19 +179,7 @@ class Root(Tk):
 
         self.imageEditTools(img)
         print('LOG:. Dilation')
-        # if epoch == 0:
-        #     dilated_image = image
-        # else:
-        #     dilated_image = dilation(edge_blade, dilation_filter)
-        #     for i in range(epoch-1):
-        #         dilated_image = dilation(dilated_image, dilation_filter)
-
-        # plt.figure(dpi=150)
-        # plt.subplot(121)
-        # plt.imshow(edge_blade, cmap='gray')
-        # plt.subplot(122)
-        # plt.imshow(dilated_image, cmap='gray')
-        # return dilated_image
+      
 root = Root()
 root.mainloop()
 
