@@ -1,11 +1,11 @@
 from tkinter import *
 from tkinter import ttk, filedialog
-from PIL import Image, ImageTk
-import numpy as np
 from scipy import signal
 from skimage.morphology import erosion, dilation
 import scipy.stats as st
 from scipy.ndimage import zoom
+import numpy as np
+from PIL import Image, ImageTk
 
 class Root(Tk):
     def __init__(self):
@@ -13,8 +13,8 @@ class Root(Tk):
         self.width = 500
         self.height = 350
         self.image = []
-        self.title("Tkinter GUI")
-        self.iconbitmap("the_simpsons.ico")
+        self.title("Plate recognition")
+        self.iconbitmap("ICON.ico")
         self.minsize(self.width, self.height)
 
         # Define a container name 'labelFrame'
@@ -35,7 +35,7 @@ class Root(Tk):
 
 
     def fileDialog(self):
-        filename = filedialog.askopenfilename(initialdir = "C:/Users/T R N V A N M A N H/Desktop/BLADE-DETECTION", title = "Select A File", filetype = (("all files","*.*"),("jpeg files","*.jpg")) )
+        filename = filedialog.askopenfilename(initialdir = "C:/Users/", title = "Select A File")
         
         self.label.configure(text = 'Opening:   '+filename)
 
@@ -61,6 +61,9 @@ class Root(Tk):
         gray_scale = ttk.Button(tools, text='2Gray', command=lambda : self.image2Gray(image))
         gray_scale.grid(column=0, row=2)
 
+        sobel_edge = ttk.Button(tools, text='sobel', command=lambda : self.sobel_edge_detect(image))
+        sobel_edge.grid(column=0,row=3)
+
         blured_image = ttk.Button(tools, text='Gauss Blur', command=lambda: self.gaussian_blur(image))
         blured_image.grid(column=0, row=3)
 
@@ -82,6 +85,8 @@ class Root(Tk):
         self.display_image.image = photo
         self.imageEditTools(self.image)
         print('LOG:. Reseted')
+        self.imageEditTools(self.image)
+        print('LOG:. Sobel')
 
     def image2Gray(self, image):
         # Convert image to gray
@@ -195,8 +200,6 @@ class Root(Tk):
             print('LOG:. Dilation')
         except Exception as e:
             print('ERROR:. ',e, '\n\t => Gray scale first')
-        
-      
 
 
     # def clipped_zoom(img, zoom_factor, **kwargs):
