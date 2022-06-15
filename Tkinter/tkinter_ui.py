@@ -1,11 +1,12 @@
 from tkinter import *
 from tkinter import ttk, filedialog
+
+import numpy as np
+import scipy.stats as st
+from PIL import Image, ImageTk
 from scipy import signal
 from skimage.morphology import erosion, dilation
-import scipy.stats as st
-from scipy.ndimage import zoom
-import numpy as np
-from PIL import Image, ImageTk
+
 
 class Root(Tk):
     def __init__(self):
@@ -18,51 +19,49 @@ class Root(Tk):
         self.minsize(self.width, self.height)
 
         # Define a container name 'labelFrame'
-        self.labelFrame = ttk.LabelFrame(self, text = "Open File")
+        self.labelFrame = ttk.LabelFrame(self, text="Open File")
 
         # display labelFrame on grid layout
-        self.labelFrame.grid(column = 0, row = 0, padx=(20, 20), pady=(20,20))
+        self.labelFrame.grid(column=0, row=0, padx=(20, 20), pady=(20, 20))
 
         # self.fileBrowser()
         self.label = ttk.Label(self.labelFrame, text='Choose an image! ')
-        self.button = ttk.Button(self.labelFrame, text = "Browse A File",command = self.fileDialog)
+        self.button = ttk.Button(self.labelFrame, text="Browse A File", command=self.fileDialog)
         self.label.grid(column=1, row=0)
-        self.button.grid(column=2, row = 0)
+        self.button.grid(column=2, row=0)
 
         # Display image
         self.display_image = ttk.Label(self.labelFrame)
         self.display_image.grid(column=0, row=1, columnspan=3)
 
-        # self.canvas_img = Canvas(self.labelFrame, width=300, height=300, bg='gray')
-        # self.canvas_img.grid(row=1, column=0)
-
-
     def fileDialog(self):
-        filename = filedialog.askopenfilename(initialdir = "C:/Users/", title = "Select A File")
-        
-        self.label.configure(text = 'Opening:   '+filename)
+        filename = filedialog.askopenfilename(initialdir="C:/Users/", title="Select A File")
+
+        self.label.configure(text='Opening:   ' + filename)
 
         img = Image.open(filename)
-        self.image= img
-        self.image_display(img)
-        print("Image's size: ",img.size)
+        self.image = img
+        photo = ImageTk.PhotoImage(img)
+        self.display_image.configure(image=photo)
+        self.display_image.image = photo
 
+        self.imageEditTools(img)
 
-    def imageEditTools(self, image): #image opened by PIL
+    def imageEditTools(self, image):  # image opened by PIL
         tools = ttk.LabelFrame(self, text='tools')
-        tools.grid(column=11, row=0, padx=(0, 20), pady=(0, 10),)
+        tools.grid(column=11, row=0, padx=(0, 20), pady=(0, 10), )
 
-        zoom_in = ttk.Button(tools,text='Zoom Out', command=lambda : self.imageZoomOut(image))
+        zoom_in = ttk.Button(tools, text='Zoom Out', command=lambda: self.imageZoomOut(image))
         zoom_in.grid(column=0, row=0)
 
-        zoom_out = ttk.Button(tools, text='Zoom In', command=lambda : self.imageZoomIn(image))
+        zoom_out = ttk.Button(tools, text='Zoom In', command=lambda: self.imageZoomIn(image))
         zoom_out.grid(column=0, row=1)
 
-        gray_scale = ttk.Button(tools, text='2Gray', command=lambda : self.image2Gray(image))
+        gray_scale = ttk.Button(tools, text='2Gray', command=lambda: self.image2Gray(image))
         gray_scale.grid(column=0, row=2)
 
-        sobel_edge = ttk.Button(tools, text='sobel', command=lambda : self.sobel_edge_detect(image))
-        sobel_edge.grid(column=0,row=3)
+        sobel_edge = ttk.Button(tools, text='sobel', command=lambda: self.sobel_edge_detect(image))
+        sobel_edge.grid(column=0, row=3)
 
         blured_image = ttk.Button(tools, text='Gauss Blur', command=lambda: self.gaussian_blur(image))
         blured_image.grid(column=0, row=3)
@@ -79,20 +78,24 @@ class Root(Tk):
         reset = ttk.Button(tools, text='Reset', command=self.origin_img)
         reset.grid(column=0, row=7)
 
-        opening = ttk.Button(tools, text='Opening', command=lambda: self._opening(image))
-        opening.grid(column=0, row=8)
-
-        closing = ttk.Button(tools, text='Closing', command=lambda: self._closing(image))
-        closing.grid(column=0, row=9)
-
     def origin_img(self):
-        self.image_display(self.image)
-        print('LOG:. Reset')
+        photo = ImageTk.PhotoImage(self.image)
+        self.display_image.configure(image=photo)
+        self.display_image.image = photo
+        self.imageEditTools(self.image)
+        print('LOG:. Reseted')
+        self.imageEditTools(self.image)
+        print('LOG:. Sobel')
 
     def image2Gray(self, image):
         # Convert image to gray
         image = image.convert('L')
-        self.image_display(image)
+        image_gray = ImageTk.PhotoImage(image)
+
+        self.display_image.configure(image=image_gray)
+        self.display_image.image = image_gray
+
+        self.imageEditTools(image)
         print('LOG:. 2Gray')
 
     # Zoom in image processing
@@ -101,8 +104,13 @@ class Root(Tk):
         width, height = image.size
         _size = (width * ratio, height * ratio)
         image.thumbnail(_size, Image.ANTIALIAS)
-        self.image_display(image)
+
+        image_resized = ImageTk.PhotoImage(image)
+        self.display_image.configure(image=image_resized)
+        self.display_image.image = image_resized
         print('LOG:. zoom_in')
+
+        self.imageEditTools(image)
 
     # zoom out image processing
     def imageZoomIn(self, image):
@@ -110,29 +118,36 @@ class Root(Tk):
         width, height = image.size
         _size = (int(width * ratio), int(height * ratio))
         image = image.resize(_size)
-        self.image_display(image)
+
+        image_resize = ImageTk.PhotoImage(image)
+        self.display_image.configure(image=image_resize)  # Update image displayed
+        self.display_image.image = image_resize
+
+        self.imageEditTools(image)
         print('LOG:. zoom_out')
 
     def gaussian_filter(self, size, nsig=1):
-        x = np.linspace(-nsig, nsig, size+1)
+        x = np.linspace(-nsig, nsig, size + 1)
         ker1d = np.diff(st.norm.cdf(x))
         ker2d = np.outer(ker1d, ker1d)
         return ker2d
 
-    def gaussian_blur(self, image, kernel_size=5):
+    def gaussian_blur(self, image):
         try:
             blured_img = signal.convolve2d(image, self.gaussian_filter(5))
             img = Image.fromarray(blured_img)
-            self.image_display(img)
+            img_display = ImageTk.PhotoImage(img)
+            self.display_image.configure(image=img_display)
+            self.display_image.image = img_display
+
+            self.imageEditTools(img)
             print('LOG:. blured')
-            print('...', img.size)
         except Exception as e:
-            print(e,'\nERROR: Gray scale first')
-        
+            print(e, '\nERROR: Gray scale first')
 
     def sobel_edge_detect(self, image):
-        sobel_x = np.array([[1, 0, -1], [2, 0 ,-2], [1, 0, -1]])
-        sobel_y = np.array([[1, 2, 1], [0, 0 ,0], [-1, -2, -1]])
+        sobel_x = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
+        sobel_y = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
 
         try:
             image_x = signal.convolve2d(image, sobel_x)
@@ -140,80 +155,94 @@ class Root(Tk):
             edge_detected = np.sqrt(np.square(image_x) + np.square(image_y))
 
             img = Image.fromarray(edge_detected)
-            self.image_display(img)
+
+            img_display = ImageTk.PhotoImage(img)
+            self.display_image.configure(image=img_display)
+            self.display_image.image = img_display
+
+            # update image to edit tools
+            self.imageEditTools(img)
             print('LOG:. Sobel applied')
         except Exception as e:
-            print(e,'\nERROR:. Gray scale image first!')
-        
-
-    def _erosion(self, image, filter=[]):
-        if not filter:
-            erosion_filter = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
-        else:
-            erosion_filter = np.array(filter)
-        erosed = erosion(image, erosion_filter)
-        return Image.fromarray(erosed)
-
-    def _dilation(self, image, filter=[]):
-        if not filter:
-            dilation_filter = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
-        else:
-            dilation_filter = np.array(filter)
-        dilated = dilation(image, dilation_filter)
-        return Image.fromarray(dilated)
+            print(e, '\nERROR:. Gray scale image first!')
 
     def eros_img(self, image):
+        eros_filter = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
+
         try:
-            erosed = self._erosion(image)
-            self.image_display(erosed)
+            erosed = erosion(image, eros_filter)
+            # Numpy array to Image
+            img = Image.fromarray(erosed)
+            img_display = ImageTk.PhotoImage(img)
+            self.display_image.configure(image=img_display)
+            self.display_image.image = img_display
+            self.imageEditTools(img)
             print('LOG:. Erosion')
         except Exception as e:
-            print('ERROR:. ',e, '\n\t => Gray scale first')
-        
+            print('ERROR:. ', e, '\n\t => Gray scale first')
+
     def dilate_img(self, image):
+        dilation_filter = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
+
+        # apply dilation to image
         try:
-            dilated = self._dilation(image)
-            self.image_display(dilated)
+            dilated = dilation(image, dilation_filter)
+            img = Image.fromarray(dilated)
+            img_display = ImageTk.PhotoImage(img)
+            self.display_image.configure(image=img_display)
+            self.display_image.image = img_display
+            self.imageEditTools(img)
             print('LOG:. Dilation')
         except Exception as e:
-            print('ERROR:. ',e, '\n\t => Gray scale first')
+            print('ERROR:. ', e, '\n\t => Gray scale first')
 
-    def _opening(self, image):
-        try:
-            filter = [[1,0,1],[0,1,0],[1,0,1]]
-            img = self._erosion(image, filter)
-            img = self._dilation(img, filter)
-            self.image_display(img)
-            print('LOG:. Opening')
-        except Exception as e:
-            print("ERROR:. Turn image to Gray first!")
+    # def clipped_zoom(img, zoom_factor, **kwargs):
 
-    def _closing(self, image):
-        try:
-            filter = [[1,0,1],[0,1,0],[1,0,1]]
-            img=self._dilation(image, filter)
-            img=self._erosion(img,filter)
-            self.image_display(img)
-            print('LOG:. Closing')
-        except Exception as e:
-            print("ERROR:. Turn image to Gray first!")
+    #     h, w = img.shape[:2]
 
-    def image_display(self, image):
-        img_display = ImageTk.PhotoImage(image)
-        self.display_image.configure(image=img_display)
-        self.display_image.image=img_display
-        self.imageEditTools(image)
+    #     # For multichannel images we don't want to apply the zoom factor to the RGB
+    #     # dimension, so instead we create a tuple of zoom factors, one per array
+    #     # dimension, with 1's for any trailing dimensions after the width and height.
+    #     zoom_tuple = (zoom_factor,) * 2 + (1,) * (img.ndim - 2)
+
+    #     # Zooming out
+    #     if zoom_factor < 1:
+
+    #         # Bounding box of the zoomed-out image within the output array
+    #         zh = int(np.round(h * zoom_factor))
+    #         zw = int(np.round(w * zoom_factor))
+    #         top = (h - zh) // 2
+    #         left = (w - zw) // 2
+
+    #         # Zero-padding
+    #         out = np.zeros_like(img)
+    #         out[top:top+zh, left:left+zw] = zoom(img, zoom_tuple, **kwargs)
+
+    #     # Zooming in
+    #     elif zoom_factor > 1:
+
+    #         # Bounding box of the zoomed-in region within the input array
+    #         zh = int(np.round(h / zoom_factor))
+    #         zw = int(np.round(w / zoom_factor))
+    #         top = (h - zh) // 2
+    #         left = (w - zw) // 2
+
+    #         out = zoom(img[top:top+zh, left:left+zw], zoom_tuple, **kwargs)
+
+    #         # `out` might still be slightly larger than `img` due to rounding, so
+    #         # trim off any extra pixels at the edges
+    #         trim_top = ((out.shape[0] - h) // 2)
+    #         trim_left = ((out.shape[1] - w) // 2)
+    #         out = out[trim_top:trim_top+h, trim_left:trim_left+w]
+
+    #     # If zoom_factor == 1, just return the input array
+    #     else:
+    #         out = img
+    #     return out
+
 
 root = Root()
 root.mainloop()
-
-
-
-
-
-
-
-
 
 # from tkinter import *
 # from tkinter import ttk
