@@ -34,6 +34,9 @@ class Root(Tk):
         self.display_image = ttk.Label(self.labelFrame)
         self.display_image.grid(column=0, row=1, columnspan=3)
 
+        # self.canvas_img = Canvas(self.labelFrame, width=300, height=300, bg='gray')
+        # self.canvas_img.grid(row=1, column=0)
+
     def fileDialog(self):
         filename = filedialog.askopenfilename(initialdir="C:/Users/", title="Select A File")
 
@@ -41,11 +44,8 @@ class Root(Tk):
 
         img = Image.open(filename)
         self.image = img
-        photo = ImageTk.PhotoImage(img)
-        self.display_image.configure(image=photo)
-        self.display_image.image = photo
-
-        self.imageEditTools(img)
+        self.image_display(img)
+        print("Image's size: ", img.size)
 
     def imageEditTools(self, image):  # image opened by PIL
         tools = ttk.LabelFrame(self, text='tools')
@@ -75,27 +75,23 @@ class Root(Tk):
         dilation = ttk.Button(tools, text='Dilation', command=lambda: self.dilate_img(image))
         dilation.grid(column=0, row=6)
 
+        opening = ttk.Button(tools, text='Opening', command=lambda: self._opening(image))
+        opening.grid(column=0, row=7)
+
+        closing = ttk.Button(tools, text='Closing', command=lambda: self._closing(image))
+        closing.grid(column=0, row=8)
+
         reset = ttk.Button(tools, text='Reset', command=self.origin_img)
-        reset.grid(column=0, row=7)
+        reset.grid(column=0, row=9)
 
     def origin_img(self):
-        photo = ImageTk.PhotoImage(self.image)
-        self.display_image.configure(image=photo)
-        self.display_image.image = photo
-        self.imageEditTools(self.image)
-        print('LOG:. Reseted')
-        self.imageEditTools(self.image)
-        print('LOG:. Sobel')
+        self.image_display(self.image)
+        print('LOG:. Reset')
 
     def image2Gray(self, image):
         # Convert image to gray
         image = image.convert('L')
-        image_gray = ImageTk.PhotoImage(image)
-
-        self.display_image.configure(image=image_gray)
-        self.display_image.image = image_gray
-
-        self.imageEditTools(image)
+        self.image_display(image)
         print('LOG:. 2Gray')
 
     # Zoom in image processing
@@ -104,13 +100,8 @@ class Root(Tk):
         width, height = image.size
         _size = (width * ratio, height * ratio)
         image.thumbnail(_size, Image.ANTIALIAS)
-
-        image_resized = ImageTk.PhotoImage(image)
-        self.display_image.configure(image=image_resized)
-        self.display_image.image = image_resized
+        self.image_display(image)
         print('LOG:. zoom_in')
-
-        self.imageEditTools(image)
 
     # zoom out image processing
     def imageZoomIn(self, image):
@@ -118,12 +109,7 @@ class Root(Tk):
         width, height = image.size
         _size = (int(width * ratio), int(height * ratio))
         image = image.resize(_size)
-
-        image_resize = ImageTk.PhotoImage(image)
-        self.display_image.configure(image=image_resize)  # Update image displayed
-        self.display_image.image = image_resize
-
-        self.imageEditTools(image)
+        self.image_display(image)
         print('LOG:. zoom_out')
 
     def gaussian_filter(self, size, nsig=1):
@@ -136,12 +122,9 @@ class Root(Tk):
         try:
             blured_img = signal.convolve2d(image, self.gaussian_filter(5))
             img = Image.fromarray(blured_img)
-            img_display = ImageTk.PhotoImage(img)
-            self.display_image.configure(image=img_display)
-            self.display_image.image = img_display
-
-            self.imageEditTools(img)
+            self.image_display(img)
             print('LOG:. blured')
+            print('...', img.size)
         except Exception as e:
             print(e, '\nERROR: Gray scale first')
 
@@ -155,47 +138,89 @@ class Root(Tk):
             edge_detected = np.sqrt(np.square(image_x) + np.square(image_y))
 
             img = Image.fromarray(edge_detected)
-
-            img_display = ImageTk.PhotoImage(img)
-            self.display_image.configure(image=img_display)
-            self.display_image.image = img_display
-
-            # update image to edit tools
-            self.imageEditTools(img)
+            self.image_display(img)
             print('LOG:. Sobel applied')
         except Exception as e:
             print(e, '\nERROR:. Gray scale image first!')
 
-    def eros_img(self, image):
-        eros_filter = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
+    def _erosion(self, image, filter=[]):
+        if not filter:
+            erosion_filter = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
+        else:
+            erosion_filter = np.array(filter)
+        erosed = erosion(image, erosion_filter)
+        return Image.fromarray(erosed)
 
+    def _dilation(self, image, filter=[]):
+        if not filter:
+            dilation_filter = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
+        else:
+            dilation_filter = np.array(filter)
+        dilated = dilation(image, dilation_filter)
+        return Image.fromarray(dilated)
+
+    def eros_img(self, image):
         try:
-            erosed = erosion(image, eros_filter)
-            # Numpy array to Image
-            img = Image.fromarray(erosed)
-            img_display = ImageTk.PhotoImage(img)
-            self.display_image.configure(image=img_display)
-            self.display_image.image = img_display
-            self.imageEditTools(img)
+            erosed = self._erosion(image)
+            self.image_display(erosed)
             print('LOG:. Erosion')
         except Exception as e:
             print('ERROR:. ', e, '\n\t => Gray scale first')
 
     def dilate_img(self, image):
-        dilation_filter = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 1]])
-
-        # apply dilation to image
         try:
-            dilated = dilation(image, dilation_filter)
-            img = Image.fromarray(dilated)
-            img_display = ImageTk.PhotoImage(img)
-            self.display_image.configure(image=img_display)
-            self.display_image.image = img_display
-            self.imageEditTools(img)
+            dilated = self._dilation(image)
+            self.image_display(dilated)
             print('LOG:. Dilation')
         except Exception as e:
             print('ERROR:. ', e, '\n\t => Gray scale first')
 
+    def _opening(self, image):
+        try:
+            filter = [[1, 0, 1], [0, 1, 0], [1, 0, 1]]
+            img = self._erosion(image, filter)
+            img = self._dilation(img, filter)
+            self.image_display(img)
+            print('LOG:. Opening')
+        except Exception as e:
+            print("ERROR:. Turn image to Gray first!")
+
+    def _closing(self, image):
+        try:
+            filter = [[1, 0, 1], [0, 1, 0], [1, 0, 1]]
+            img = self._dilation(image, filter)
+            img = self._erosion(img, filter)
+            self.image_display(img)
+            print('LOG:. Closing')
+        except Exception as e:
+            print("ERROR:. Turn image to Gray first!")
+
+    def image_display(self, image):
+        img_display = ImageTk.PhotoImage(image)
+        self.display_image.configure(image=img_display)
+        self.display_image.image = img_display
+        self.imageEditTools(image)
+
 
 root = Root()
 root.mainloop()
+
+# from tkinter import *
+# from tkinter import ttk
+# app = Tk()
+
+# def submit():
+#     print(dirname.get(), "-", type(dirname.get()))
+# # labelText=StringVar()
+# # labelText.set("Enter directory of log files ::. ")
+# labelDir=Label(app, text="Enter directory of log files ::. ", height=4)
+# labelDir.pack(side="left")
+
+# directory=StringVar()
+# dirname=Entry(app,textvariable=directory, width=20)
+# dirname.pack(side="left")
+
+# button = ttk.Button(text='submit', command=submit)
+# button.pack()
+
+# app.mainloop()
