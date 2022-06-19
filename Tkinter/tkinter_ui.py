@@ -22,7 +22,7 @@ class Root(Tk):
         self.labelFrame = ttk.LabelFrame(self, text = "Open File")
 
         # display labelFrame on grid layout
-        self.labelFrame.grid(column = 0, row = 0, padx=(20, 20), pady=(20,20))
+        self.labelFrame.grid(column = 0, row = 0, padx=(10, 10), pady=(10,10))
 
         # self.fileBrowser()
         self.label = ttk.Label(self.labelFrame, text='Choose an image! ')
@@ -51,7 +51,7 @@ class Root(Tk):
 
     def imageEditTools(self, image): #image opened by PIL
         tools = ttk.LabelFrame(self, text='tools')
-        tools.grid(column=11, row=0, padx=(0, 20), pady=(0, 10), sticky=tkinter.N)
+        tools.grid(column=11, row=0, padx=(10, 10), pady=(10, 10), sticky=tkinter.N)
 
         zoom_in = ttk.Button(tools,text='Zoom Out', command=lambda : self.imageZoomOut(image))
         zoom_in.grid(column=0, row=0)
