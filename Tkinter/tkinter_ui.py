@@ -1,3 +1,4 @@
+import tkinter
 from tkinter import *
 from tkinter import ttk, filedialog
 
@@ -49,7 +50,7 @@ class Root(Tk):
 
     def imageEditTools(self, image):  # image opened by PIL
         tools = ttk.LabelFrame(self, text='tools')
-        tools.grid(column=11, row=0, padx=(0, 20), pady=(0, 10), )
+        tools.grid(column=11, row=0, padx=(0, 20), pady=(0, 10), sticky=tkinter.N)
 
         zoom_in = ttk.Button(tools, text='Zoom Out', command=lambda: self.imageZoomOut(image))
         zoom_in.grid(column=0, row=0)
