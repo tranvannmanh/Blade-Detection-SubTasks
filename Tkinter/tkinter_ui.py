@@ -1,3 +1,4 @@
+import tkinter
 from tkinter import *
 from tkinter import ttk, filedialog
 from scipy import signal
@@ -50,7 +51,7 @@ class Root(Tk):
 
     def imageEditTools(self, image): #image opened by PIL
         tools = ttk.LabelFrame(self, text='tools')
-        tools.grid(column=11, row=0, padx=(0, 20), pady=(0, 10),)
+        tools.grid(column=11, row=0, padx=(0, 20), pady=(0, 10), sticky=tkinter.N)
 
         zoom_in = ttk.Button(tools,text='Zoom Out', command=lambda : self.imageZoomOut(image))
         zoom_in.grid(column=0, row=0)
@@ -76,14 +77,14 @@ class Root(Tk):
         dilation = ttk.Button(tools, text='Dilation', command=lambda: self.dilate_img(image))
         dilation.grid(column=0, row=6)
 
-        reset = ttk.Button(tools, text='Reset', command=self.origin_img)
-        reset.grid(column=0, row=7)
-
         opening = ttk.Button(tools, text='Opening', command=lambda: self._opening(image))
-        opening.grid(column=0, row=8)
+        opening.grid(column=0, row=7)
 
         closing = ttk.Button(tools, text='Closing', command=lambda: self._closing(image))
-        closing.grid(column=0, row=9)
+        closing.grid(column=0, row=8)
+
+        reset = ttk.Button(tools, text='Reset', command=self.origin_img)
+        reset.grid(column=0, row=9)
 
     def origin_img(self):
         self.image_display(self.image)
