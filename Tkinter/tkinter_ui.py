@@ -1,29 +1,15 @@
 import tkinter
 from tkinter import *
 from tkinter import ttk, filedialog
-
-import numpy as np
-import scipy.stats as st
-from PIL import Image, ImageTk
 from scipy import signal
 from skimage.morphology import erosion, dilation
-# from skimage.filters import threshold_otsu
 from skimage import measure, util
 import scipy.stats as st
 import numpy as np
 from PIL import Image, ImageTk
 import pytesseract as tes
-# from PIL import Image, ImageFilter
-# from scipy.ndimage.filters import convolve
-# from scipy import signal
-# import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-# import scipy.stats as st
-# from skimage.morphology import erosion, dilation
-# from scipy.ndimage import gaussian_filter
-# from skimage.filters import threshold_otsu
-# from skimage import measure, util
 
 class Root(Tk):
     def __init__(self):

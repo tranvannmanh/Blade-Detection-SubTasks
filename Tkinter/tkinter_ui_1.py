@@ -2,23 +2,22 @@ import tkinter
 from tkinter import *
 from tkinter import ttk, filedialog
 
-import numpy as np
-import scipy.stats as st
-from PIL import Image, ImageTk
-from scipy import signal
-from skimage.morphology import erosion, dilation
-# from skimage.filters import threshold_otsu
-from skimage import measure, util
-import scipy.stats as st
-import numpy as np
-from PIL import Image, ImageTk
-import pytesseract as tes
+import matplotlib.patches as mpatches
 # from PIL import Image, ImageFilter
 # from scipy.ndimage.filters import convolve
 # from scipy import signal
 # import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+import numpy as np
+import pytesseract as tes
+import scipy.stats as st
+from PIL import Image, ImageTk
+from scipy import signal
+# from skimage.filters import threshold_otsu
+from skimage import measure
+from skimage.morphology import erosion, dilation
+
+
 # import scipy.stats as st
 # from skimage.morphology import erosion, dilation
 # from scipy.ndimage import gaussian_filter
@@ -63,7 +62,7 @@ class Root(Tk):
     def license_plate_display(self, image):
         img_display = ImageTk.PhotoImage(image)
         self.license_plate.configure(image=img_display)
-        self.license_plate.image=img_display
+        self.license_plate.image = img_display
         # self.imageEditTools(image)
 
     def fileDialog(self):
@@ -150,11 +149,12 @@ class Root(Tk):
             region_area = region.area
             image_area = img.shape[0] * img.shape[1]
 
-            if region_area < 0.01*image_area or region_area > 0.08*image_area:
+            if region_area < 0.01 * image_area or region_area > 0.08 * image_area:
                 continue
-                
+
             if (ratio > 1.0 and ratio < 1.8) or (ratio > 2.5 and ratio < 4.5):
-                rect = mpatches.Rectangle((min_col, min_row), max_col - min_col, max_row - min_row, fill=False, edgecolor='red', linewidth=2)
+                rect = mpatches.Rectangle((min_col, min_row), max_col - min_col, max_row - min_row, fill=False,
+                                          edgecolor='red', linewidth=2)
                 region_pass.append([min_col, min_row, max_col, max_row])
                 ax.add_patch(rect)
         plt.tight_layout()
@@ -193,7 +193,7 @@ class Root(Tk):
         mean2 = (np.cumsum((hist * bin_mids)[::-1]) / weight2[::-1])[::-1]
 
         inter_class_variance = weight1[:-1] * \
-                                   weight2[1:] * (mean1[:-1] - mean2[1:]) ** 2
+                               weight2[1:] * (mean1[:-1] - mean2[1:]) ** 2
 
         index_of_max_val = np.argmax(inter_class_variance)
 
@@ -205,7 +205,7 @@ class Root(Tk):
         # except EXCEPTION as e:
         #     print("ERROR:. Turn image to Gray first!")
         return img
-            
+
     def negative_image(self, image):
         img = np.asarray(image)
         img = 255 - img
