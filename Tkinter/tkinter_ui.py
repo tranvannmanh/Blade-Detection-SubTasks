@@ -2,23 +2,20 @@ import tkinter
 from tkinter import *
 from tkinter import ttk, filedialog
 
-import numpy as np
-import scipy.stats as st
-from PIL import Image, ImageTk
-from scipy import signal
-from skimage.morphology import erosion, dilation
-# from skimage.filters import threshold_otsu
-from skimage import measure, util
-import scipy.stats as st
-import numpy as np
-from PIL import Image, ImageTk
-
+import matplotlib.patches as mpatches
 # from PIL import Image, ImageFilter
 # from scipy.ndimage.filters import convolve
 # from scipy import signal
 # import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+import numpy as np
+import scipy.stats as st
+from PIL import Image, ImageTk
+from scipy import signal
+from skimage import measure, util
+from skimage.morphology import erosion, dilation
+
+
 # import scipy.stats as st
 # from skimage.morphology import erosion, dilation
 # from scipy.ndimage import gaussian_filter
@@ -139,11 +136,12 @@ class Root(Tk):
             region_area = region.area
             image_area = img.shape[0] * img.shape[1]
 
-            if region_area < 0.01*image_area or region_area > 0.08*image_area:
+            if region_area < 0.01 * image_area or region_area > 0.08 * image_area:
                 continue
             # if _height >= min_height and _height <= max_height and _width >= min_width and _width <= max_width and _width > _height:
             if (ratio > 1.0 and ratio < 1.8) or (ratio > 2.5 and ratio < 4.5):
-                rect = mpatches.Rectangle((min_col, min_row), max_col - min_col, max_row - min_row, fill=False, edgecolor='red', linewidth=2)
+                rect = mpatches.Rectangle((min_col, min_row), max_col - min_col, max_row - min_row, fill=False,
+                                          edgecolor='red', linewidth=2)
                 ax.add_patch(rect)
 
         plt.tight_layout()
@@ -172,13 +170,13 @@ class Root(Tk):
             index_of_max_val = np.argmax(inter_class_variance)
 
             threshold = bin_mids[:-1][index_of_max_val]
-            img = np.invert(threshold > image)
+            img = np.invert(image > threshold)
             img = Image.fromarray(img)
             self.image_display(img)
             print('LOG:. Threshold otsu')
         except EXCEPTION as e:
             print("ERROR:. Turn image to Gray first!")
-            
+
     def negative_image(self, image):
         img = np.asarray(image)
         img = 255 - img
@@ -187,7 +185,7 @@ class Root(Tk):
 
     def image_threshold(self, image):
         img = np.asarray(image)
-        threshold_value = threshold_otsu(img)
+        threshold_value = self.threshold_otsu(img)
         image_display = util.invert(img > threshold_value)
         image_display = Image.fromarray(image_display)
         self.image_display(image_display)
@@ -228,7 +226,7 @@ class Root(Tk):
 
     def gaussian_blur(self, image):
         try:
-            blured_img = signal.convolve2d(image, self.gaussian_filter(kernel_size))
+            blured_img = signal.convolve2d(image, self.gaussian_filter(3))
             img = Image.fromarray(blured_img)
             self.image_display(img)
             print('LOG:. blured')
