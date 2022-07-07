@@ -122,14 +122,15 @@ class Root(Tk):
         labeled_image = ttk.Button(tools, text='Label', command=lambda: self.image_labels(image))
         labeled_image.grid(column=0, row=12)
 
-        # recognize = ttk.Button(tools, text='Recognize', command=lambda: self.recognize_immediate(image))
-        # recognize.grid(column=0, row=13)
+        recognize = ttk.Button(tools, text='Recognize', command=lambda: self.recognize_immediate(image))
+        recognize.grid(column=0, row=13)
 
-    # def recognize_immediate(self, image):
-    #     gray = self.image2Gray(image)
-    #     blurred = self.gaussian_blur(gray)
-    #     binary_img = self.threshold_otsu(blurred)
-    #     labeled = self.image_labels(binary_img)
+    def recognize_immediate(self, image):
+        gray = self.image2Gray(image)
+        blurred = self.gaussian_blur(gray)
+        binary_img = self.threshold_otsu(blurred)
+        closed = self._closing(binary_img)
+        labeled = self.image_labels(closed)
 
     def image_labels(self, image):
         img = np.asarray(image)
@@ -158,7 +159,7 @@ class Root(Tk):
                 ax.add_patch(rect)
         plt.tight_layout()
         plt.savefig('tkinter_detected.png')
-        plt.show()
+        # plt.show()
 
         detected = Image.open('tkinter_detected.png')
         self.image_display(detected)
@@ -199,7 +200,7 @@ class Root(Tk):
         threshold = bin_mids[:-1][index_of_max_val]
         img = np.invert(threshold > image)
         img = Image.fromarray(img)
-        self.image_display(img)
+        # self.image_display(img)
         print('LOG:. Threshold otsu')
         # except EXCEPTION as e:
         #     print("ERROR:. Turn image to Gray first!")
@@ -225,7 +226,7 @@ class Root(Tk):
     def image2Gray(self, image):
         # Convert image to gray
         image = image.convert('L')
-        self.image_display(image)
+        # self.image_display(image)
         print('LOG:. 2Gray')
         return image
 
@@ -257,7 +258,7 @@ class Root(Tk):
         # try:
         blured_img = signal.convolve2d(image, self.gaussian_filter(kernel_size))
         img = Image.fromarray(blured_img)
-        self.image_display(img)
+        # self.image_display(img)
         print('LOG:. blured')
         print('...', img.size)
         # except Exception as e:
@@ -329,7 +330,7 @@ class Root(Tk):
         filter = [[1, 0, 1], [0, 1, 0], [1, 0, 1]]
         img = self._dilation(image, filter)
         img = self._erosion(img, filter)
-        self.image_display(img)
+        # self.image_display(img)
         print('LOG:. Closing')
         # except Exception as e:
         #     print("ERROR:. Turn image to Gray first!")
