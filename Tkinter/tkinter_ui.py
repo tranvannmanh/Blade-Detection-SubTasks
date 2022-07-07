@@ -7,7 +7,23 @@ import scipy.stats as st
 from PIL import Image, ImageTk
 from scipy import signal
 from skimage.morphology import erosion, dilation
+# from skimage.filters import threshold_otsu
+from skimage import measure, util
+import scipy.stats as st
+import numpy as np
+from PIL import Image, ImageTk
 
+# from PIL import Image, ImageFilter
+# from scipy.ndimage.filters import convolve
+# from scipy import signal
+# import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+# import scipy.stats as st
+# from skimage.morphology import erosion, dilation
+# from scipy.ndimage import gaussian_filter
+# from skimage.filters import threshold_otsu
+# from skimage import measure, util
 
 class Root(Tk):
     def __init__(self):
@@ -15,7 +31,7 @@ class Root(Tk):
         self.width = 500
         self.height = 350
         self.image = []
-        self.title("Plate recognition")
+        self.title("Lisence Plate Recognition")
         self.iconbitmap("ICON.ico")
         self.minsize(self.width, self.height)
 
@@ -35,8 +51,17 @@ class Root(Tk):
         self.display_image = ttk.Label(self.labelFrame)
         self.display_image.grid(column=0, row=1, columnspan=3)
 
+        self.license_plate = ttk.Label(self.labelFrame)
+        self.license_plate.grid(column=0, row=2, columnspan=3)
+
         # self.canvas_img = Canvas(self.labelFrame, width=300, height=300, bg='gray')
         # self.canvas_img.grid(row=1, column=0)
+
+    # def license_plate_display(self, image):
+    #     img_display = ImageTk.PhotoImage(image)
+    #     self.license_plate.configure(image=img_display)
+    #     self.license_plate.image=img_display
+    #     # self.imageEditTools(image)
 
     def fileDialog(self):
         filename = filedialog.askopenfilename(initialdir="C:/Users/", title="Select A File")
@@ -64,8 +89,11 @@ class Root(Tk):
         blured_image = ttk.Button(tools, text='Gauss Blur', command=lambda: self.gaussian_blur(image))
         blured_image.grid(column=0, row=3)
 
+        threshold_image = ttk.Button(tools, text='Otsu', command=lambda: self.threshold_otsu(image))
+        threshold_image.grid(column=0, row=4)
+
         edge_detected = ttk.Button(tools, text='Edge Detect', command=lambda: self.sobel_edge_detect(image))
-        edge_detected.grid(column=0, row=4)
+        edge_detected.grid(column=0, row=5)
 
         threshold = ttk.Button(tools, text='Threshold', command=lambda: self.threshold_otsu(image))
         threshold.grid(column=0, row=5)
@@ -84,6 +112,85 @@ class Root(Tk):
 
         reset = ttk.Button(tools, text='Reset', command=self.origin_img)
         reset.grid(column=0, row=10)
+
+        negative_image = ttk.Button(tools, text='Negative', command=lambda: self.negative_image(image))
+        negative_image.grid(column=0, row=11)
+
+        labeled_image = ttk.Button(tools, text='Label', command=lambda: self.image_labels(image))
+        labeled_image.grid(column=0, row=12)
+
+    def image_labels(self, image):
+        img = np.asarray(image)
+        print(img.shape[0], img.shape[1])
+        car_labeled = measure.label(img)
+        img_displayed = Image.fromarray(car_labeled)
+        # plate_dimensions = (0.03*car_labeled.shape[0], 0.2*car_labeled.shape[0], 0.15*car_labeled.shape[1], 0.4*car_labeled.shape[1])
+        # min_height, max_height, min_width, max_width = plate_dimensions
+
+        fix, ax = plt.subplots()
+        ax.axis('off')
+        ax.imshow(np.asarray(self.image), cmap='gray')
+        for region in measure.regionprops(car_labeled):
+            min_row, min_col, max_row, max_col = region.bbox
+            _width = max_col - min_col
+            _height = max_row - min_row
+            ratio = _width / float(_height)
+
+            region_area = region.area
+            image_area = img.shape[0] * img.shape[1]
+
+            if region_area < 0.01*image_area or region_area > 0.08*image_area:
+                continue
+            # if _height >= min_height and _height <= max_height and _width >= min_width and _width <= max_width and _width > _height:
+            if (ratio > 1.0 and ratio < 1.8) or (ratio > 2.5 and ratio < 4.5):
+                rect = mpatches.Rectangle((min_col, min_row), max_col - min_col, max_row - min_row, fill=False, edgecolor='red', linewidth=2)
+                ax.add_patch(rect)
+
+        plt.tight_layout()
+        plt.savefig('tkinter_detected.png')
+        plt.show()
+
+        detected = Image.open('tkinter_detected.png')
+        self.image_display(detected)
+        # self.license_plate_display(img_displayed)
+
+    def threshold_otsu(self, image):
+        try:
+            bins_num = 256
+            hist, bin_edges = np.histogram(image, bins=bins_num)
+            bin_mids = (bin_edges[:-1] + bin_edges[1:]) / 2.
+
+            weight1 = np.cumsum(hist)
+            weight2 = np.cumsum(hist[::-1])[::-1]
+
+            mean1 = np.cumsum(hist * bin_mids) / weight1
+            mean2 = (np.cumsum((hist * bin_mids)[::-1]) / weight2[::-1])[::-1]
+
+            inter_class_variance = weight1[:-1] * \
+                                   weight2[1:] * (mean1[:-1] - mean2[1:]) ** 2
+
+            index_of_max_val = np.argmax(inter_class_variance)
+
+            threshold = bin_mids[:-1][index_of_max_val]
+            img = np.invert(threshold > image)
+            img = Image.fromarray(img)
+            self.image_display(img)
+            print('LOG:. Threshold otsu')
+        except EXCEPTION as e:
+            print("ERROR:. Turn image to Gray first!")
+            
+    def negative_image(self, image):
+        img = np.asarray(image)
+        img = 255 - img
+        image_displayed = Image.fromarray(img)
+        self.image_display(image_displayed)
+
+    def image_threshold(self, image):
+        img = np.asarray(image)
+        threshold_value = threshold_otsu(img)
+        image_display = util.invert(img > threshold_value)
+        image_display = Image.fromarray(image_display)
+        self.image_display(image_display)
 
     def origin_img(self):
         self.image_display(self.image)
@@ -121,7 +228,7 @@ class Root(Tk):
 
     def gaussian_blur(self, image):
         try:
-            blured_img = signal.convolve2d(image, self.gaussian_filter(5))
+            blured_img = signal.convolve2d(image, self.gaussian_filter(kernel_size))
             img = Image.fromarray(blured_img)
             self.image_display(img)
             print('LOG:. blured')
