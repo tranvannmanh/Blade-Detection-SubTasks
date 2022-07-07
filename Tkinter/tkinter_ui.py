@@ -218,7 +218,7 @@ class Root(Tk):
             index_of_max_val = np.argmax(inter_class_variance)
 
             threshold = bin_mids[:-1][index_of_max_val]
-            img = np.invert(image > threshold)
+            img = np.invert(threshold > image)
             img = Image.fromarray(img)
             self.image_display(img)
             print('LOG:. Threshold otsu')
