@@ -92,9 +92,6 @@ class Root(Tk):
         blured_image = ttk.Button(tools, text='Gauss Blur', command=lambda: self.gaussian_blur(image))
         blured_image.grid(column=0, row=3)
 
-        # threshold_image = ttk.Button(tools, text='Otsu', command=lambda: self.threshold_otsu(image))
-        # threshold_image.grid(column=0, row=4)
-
         # edge_detected = ttk.Button(tools, text='Edge Detect', command=lambda: self.sobel_edge_detect(image))
         # edge_detected.grid(column=0, row=13)
 
@@ -121,9 +118,6 @@ class Root(Tk):
 
         labeled_image = ttk.Button(tools, text='Label', command=lambda: self.image_labels(image))
         labeled_image.grid(column=0, row=12)
-
-        # recognize = ttk.Button(tools, text='Recognize', command=lambda: self.recognize_immediate(image))
-        # recognize.grid(column=0, row=13)
 
     # def recognize_immediate(self, image):
     #     gray = self.image2Gray(image)

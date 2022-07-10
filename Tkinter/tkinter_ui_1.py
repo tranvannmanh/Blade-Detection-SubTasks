@@ -135,7 +135,7 @@ class Root(Tk):
     def image_labels(self, image):
         img = np.asarray(image)
         print(img.shape[0], img.shape[1])
-        car_labeled = measure.label(img)
+        car_labeled = measure.label(img, connectivity=2)
         img_displayed = Image.fromarray(car_labeled)
         fix, ax = plt.subplots()
         ax.axis('off')
